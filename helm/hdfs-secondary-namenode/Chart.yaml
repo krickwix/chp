@@ -1,0 +1,4 @@
+apiVersion: v1
+name: hdfs-secondary-namenode
+version: 0.0.1
+description: Hadoop DFS secondary namenode

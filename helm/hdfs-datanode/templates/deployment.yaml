@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: hdfs-datanode
+  labels:
+    app: chp
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    component: hdfs-datanode
+spec:
+  serviceName: hdfs-datanode
+  replicas: 2
+  selector:
+    matchLabels:
+      app: chp
+  template:
+    metadata:
+      labels:
+        app: chp
+        release: {{ .Release.Name }}
+        component: hdfs-datanode
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - store
+            topologyKey: "kubernetes.io/hostname"
+
+      # dnsPolicy: Default
+      containers:
+        - name: hdfs-datanode
+          image: "pirl-nexus3.cisco.com:10010/chp/hdfs-datanode"
+          volumeMounts:
+            - mountPath: /etc/hadoop
+              name: hdfs-datanode-inputs
+            - mountPath: /data/dn
+              name: hdfs-datanode-data
+          resources:
+            requests:
+              cpu: 1
+              memory: "512Mi"
+            limits:
+              cpu: 2
+              memory: "1Gi"
+      volumes:
+        - name: hdfs-datanode-inputs
+          configMap:
+            name: hdfs-datanode-inputs
+  volumeClaimTemplates:
+  - metadata:
+      name: hdfs-datanode-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "standard"
+      resources:
+        requests:
+          storage: 100Gi

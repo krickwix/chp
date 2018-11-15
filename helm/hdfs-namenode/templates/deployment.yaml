@@ -1,0 +1,53 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: hdfs-namenode
+  labels:
+    app: chp
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: chp
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: hdfs-namenode
+          image: "pirl-nexus3.cisco.com:10010/chp/hdfs-namenode"
+          volumeMounts:
+            - mountPath: /etc/hadoop
+              name: hdfs-namenode-inputs
+            - mountPath: /data/nn
+              name: hdfs-namenode-data
+          resources:
+            requests:
+              cpu: 1
+              memory: "512Mi"
+            limits:
+              cpu: 2
+              memory: "1Gi"
+      volumes:
+        - name: hdfs-namenode-inputs
+          configMap:
+            name: hdfs-namenode-inputs
+        - name: hdfs-namenode-data
+          persistentVolumeClaim:
+            claimName: hdfs-namenode-data-claim
+
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: hdfs-namenode-data-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 150Gi
+  storageClassName: standard

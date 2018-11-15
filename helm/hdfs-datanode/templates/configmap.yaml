@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hdfs-datanode-inputs
+data:
+{{ tpl (.Files.Glob "resources/*").AsConfig . | indent 2 }}
+---
